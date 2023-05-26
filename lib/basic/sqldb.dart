@@ -1,9 +1,13 @@
 import 'package:sqflite/sqflite.dart';
-import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 
 //! =========================== || build classes || ============================
-
+/*
+ * To add new Tables for DB there are 3 methods:
+ * 1. delete old db then on create new one we add new tables to it
+ * 2. rename our db to new one and then add new tables to it
+ * 3. use onUpgrad to add new tables to it ==> better method
+ */
 //* Our model
 class SqlDb {
   //! [HINT]:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -152,9 +156,7 @@ class SqlDb {
 
 // ''');
 
-    if (kDebugMode) {
-      print("Create database and tables success ==============");
-    }
+    print("Create database and tables success ==============");
   }
 
   //* to add more than one table we need use batch rather than excute
@@ -177,21 +179,21 @@ class SqlDb {
 
     //! we add this line to apply modify
     await batch.commit();
-    if (kDebugMode) {
-      print("Create database success batch updated ==============");
-    }
+    print("Create database success batch updated ==============");
   }
 
   //****************************************************************************
   //! ===================== [4] _onUpgrade ======================
   //****************************************************************************
-  // onUpgrade
+  //? onUpgrade :-
+  //* it call when we change version of DB
+
   _onUpgrade(Database db, int oldversion, int newversion) async {
-    if (kDebugMode) {
-      print('onUpgrade =========================');
-    }
+    print('onUpgrade =========================');
+
     //! only use it once if repeat it make dupllicate table
     await db.execute("ALTER TABLE notes ADD COLUMN newcolor TEXT");
+
     //! I add table but not make error on old columns =>
     //* old 3 new 4 => when use insert only 3 no error
   }
@@ -207,6 +209,7 @@ class SqlDb {
   //? get db function above
   //* we deal with row => throghu sql instructions
   //! raw => [Query,Insert,Update,Delete](sql)
+  //? all of them return int except read == rawQuary return a list
 
   //* # ========================= Four process =================================
   //?================================ [1] ======================================
