@@ -279,11 +279,14 @@ class SqlDb {
 
   // to delete all db data = clear
   // as intialDb to determain our path
-  //?================================ [4 => B] =================================
+  //?========================= [4 => delete all DB] ============================
   mydeleteDatabase() async {
     String databasepath = await getDatabasesPath();
     String path = join(databasepath, 'wael.db');
-    // new
+
+    //? use built-in function => deleteDatabase
+    //* Delete the database at the given path.
+
     await deleteDatabase(path);
   }
   //* CRUD summary::::::::::::
@@ -291,15 +294,16 @@ class SqlDb {
   //* row methods 3 back int and one back List<Map>
   //* to delete all db we need its path then use built-in => deleteDatabase(path)
 
-  //?===========================================================
+  //****************************************************************************
   //!:::::::::: shourtcut methods ::::::::::::::::::::::::::
-  //?===========================================================
-  //* no need to write sql by yourself
-  //! use query instead of rawQuery
+  //****************************************************************************
+
+  //? no need to write sql by yourself
+  //* use query instead of rawQuery
   //? it use table name instead of sql, it back same data type
   //* same to way we use on rowmethod(sql) => query(table)
 
-  //?===== [1]============
+  //?================================ [1] ======================================
   read(String table) async {
     Database? mydb = await db;
     List<Map> response = await mydb!.query(table);
@@ -308,7 +312,7 @@ class SqlDb {
 
   //* insert and update => need values that we add to table
   //! Map<String, Object?> values
-  //?===== [2]============
+  //?================================ [2] ======================================
   insert(
     String table,
     Map<String, Object?> values,
@@ -319,7 +323,7 @@ class SqlDb {
     return response;
   }
 
-  //?===== [3]============
+  //?================================ [3] ======================================
   //* Update need also where == [condition must be true to modify]
   update(String table, Map<String, Object?> values, String? myWhere) async {
     Database? mydb = await db;
@@ -328,7 +332,7 @@ class SqlDb {
     return response;
   }
 
-  //?===== [4]============
+  //?================================ [4] ======================================
   //* delete need where also => [condition must be true to modify]
   delete(String table, String? myWhere) async {
     Database? mydb = await db;
