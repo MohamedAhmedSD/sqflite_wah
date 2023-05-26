@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Sqflite Course',
-      initialRoute: 'home',
+      initialRoute: 'basic',
       routes: {
         'basic': (context) => const Basic(),
         'home': (context) => const Home(),

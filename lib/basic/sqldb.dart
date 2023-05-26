@@ -2,23 +2,29 @@ import 'package:sqflite/sqflite.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 
-//! =============== build classes ==============
+//! =========================== || build classes || ============================
 
-//* our model
+//* Our model
 class SqlDb {
+  //! [HINT]:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   //* we need call it from any where => static == it class attribute
   //* => no need to make an object to call it, just access through class name
 
   //? Database to send sql commands, created during [openDatabase]
-  static Database? _db; //! privit => need getter to deal with it
 
+  //! privit => need getter to deal with it
+  static Database? _db;
+
+  //****************************************************************************
   //! [1]===== method to check if there db or not with same name ============
-  //!========================================================================
+  //****************************************************************************
+
   //* this function will be return db
   //* it getter method that back => Future<Database?>
   //? and because we deal with Future => we need use async && await
   Future<Database?> get db async {
     //* ====== [condition to not recreate db which already founded] =========
+
     if (_db == null) {
       //? if db not created, make it
 
@@ -33,57 +39,92 @@ class SqlDb {
     }
   }
 
-  //! ===================== [2] to create new db ======================
-  //!========================================================================
+  //****************************************************************************
+  //! ===================== [2] to create new db ===============================
+  //****************************************************************************
+
   //* functions, future => start point
   intialDb() async {
-    //* [1] path
+    //* [1] basic path
     //? where we save our database?
-    //! choose it automatically is better => by built-in =>
-    //* => getDatabasesPath()
+    //! choose it automatically is better => by built-in Sqflite method =>
+    //* getDatabasesPath() => On Android, it is typically data/data//databases
 
     String databasepath = await getDatabasesPath(); //* ex => btoo
 
     //* [2] full path
     //? connect our path to DB
-    //* join is bring DB path then add [/] to our path
-    //! must end with .db
-    //* join => add / that we need them
-    String path = join(databasepath, 'wael.db'); //* btoo/wael.db
+    //* use join => to bring DB path then add [/] to our path
+    //! must end with .db -------------------------------------
+    //* join => add [/] , that we need them to make our full path
+    //* btoo/wael.db
+    String path = join(databasepath, 'wael.db');
+
+    //? join written by 3 ways:-
+    //  p.join('path', 'to', 'foo'); // -> 'path/to/foo'
+    //  p.join('path/', 'to', 'foo'); // -> 'path/to/foo
+    //  p.join('path', '/to', 'foo'); // -> '/to/foo'
 
     //* [3] function => create our DB, built-in => openDatabase
     //? openDatabase => it need two args (path and functions)
     //* we add version & onUpgrade to update database because we cannot do that
-    //? due to it create only once, instead of delete it
+    //? by create, due to it create only once, instead of delete it
     //* we call _onUpggrade automatically when edit version number
 
+    //! Database to send sql commands, created during [openDatabase]
     Database mydb = await openDatabase(path,
         //* onCreate need 2 args, we make it alone function bellow
         onCreate: _onCreate,
         //* we need version && onUpgrade => to make possible change db structure
-        version: 200,
+        version: 1,
         onUpgrade: _onUpgrade);
+
+    /*
+  *[onConfigure] is the first callback invoked when opening the database. 
+    It allows you to perform database initialization such as
+    enabling foreign keys or write-ahead logging.
+
+  * If [version] is specified, [onCreate], [onUpgrade], and [onDowngrade] can be called.
+    These functions are mutually exclusive — only one of them can be 
+    called depending on the context, although they can all be specified
+    to cover multiple scenarios. If specified, it must be a 32-bits integer greater than 0.
+
+  * [onCreate] is called if the database did not exist prior to calling [openDatabase].
+    You can use the opportunity to create the required tables 
+    in the database according to your schema
+
+  * [onUpgrade] is called if either of the following conditions are met:
+
+  * [onCreate] is not specified
+    The database already exists and [version] is higher than the last database
+    version
+
+  */
     //! don't forget return db =======================================
     return mydb;
   }
 
+  //****************************************************************************
   //! ===================== [3] _onCreate ======================
-  //!========================================================================
+  //****************************************************************************
+  //? main job to create tables for us.-----------------------------------------
+
   //* {FutureOr<void> Function(Database, int)? onCreate}
   // future function => 2 parameters (Database, int)
-  //? it call on first time only
+  //? it call on first time only -----------------------------------------------
   //! we need it to create tables
   //* it future function here
 
   _onCreate(Database db, int version) async {
-    //* we excute our sql code through DB parameter
+    //* we excute our sql code by using DB parameter
+    //? Execute an SQL query with no return value.
 
     //? AUTOINCREMENT => should be at end
     //! Table name != column name [don't use same name for table && column]
     //? put table && column name between ''
+    //* we use Text == Varchar , REAL == float , INTEGER == int
 
     //! table 1 :::::::::::::::::::::::::::::::
-    //? Execute an SQL query with no return value.
 
     await db.execute('''
     CREATE TABLE "notes" (
@@ -112,7 +153,7 @@ class SqlDb {
 // ''');
 
     if (kDebugMode) {
-      print("Create database success ==============");
+      print("Create database and tables success ==============");
     }
   }
 
@@ -141,8 +182,9 @@ class SqlDb {
     }
   }
 
+  //****************************************************************************
   //! ===================== [4] _onUpgrade ======================
-  //!========================================================================
+  //****************************************************************************
   // onUpgrade
   _onUpgrade(Database db, int oldversion, int newversion) async {
     if (kDebugMode) {
@@ -154,8 +196,9 @@ class SqlDb {
     //* old 3 new 4 => when use insert only 3 no error
   }
 
+  //****************************************************************************
   //! ============================= [5] CRUD ================================
-  //!========================================================================
+  //****************************************************************************
   // SELECT == read
   // DELETE
   // UPDATE
@@ -165,42 +208,52 @@ class SqlDb {
   //* we deal with row => throghu sql instructions
   //! raw => [Query,Insert,Update,Delete](sql)
 
-  //* # ============ Four process ===========================
-  //?===== [1]============
-  readData(String sql) async {
-    Database? mydb = await db; //* db return from first function
+  //* # ========================= Four process =================================
+  //?================================ [1] ======================================
+  //*we add String parameter to be able to use it
 
-    //! to use SELECT, we add String parameter to be able use it
+  readData(String sql) async {
+    //* db return from first function, it back our db
+    //? Database ??????????? = may null
+    Database? mydb = await db;
+
+    //! to use SELECT, we add String parameter to be able to use it
     //* from out than inner place, so by using paramater may
     //* write alot of sql codes
 
-    //! ==========method not work with null==========
+    //! ==================== method not work with null ====================
     List<Map> response = await mydb!.rawQuery(sql);
     // List<Map> list = await database.rawQuery('SELECT * FROM Test');
+    //*Executes a raw SQL SELECT query and returns a list of the rows that were found.
 
-    //! don't forget return
+    //! ==================== don't forget return ==============================
     return response;
   }
 
-  //?===== [2]============
+  //?================================ [2] ======================================
   //* insert back int, value of row which added
-  //* if operation failed, it back 0, others main it call certain row
+  //* if operation failed, it back 0, or others number, mean it call certain row
 
   insertData(String sql) async {
     Database? mydb = await db;
-    // method not work with null
+
+    //! method not work with null
     int response = await mydb!.rawInsert(sql);
+    //* Executes a raw SQL INSERT query and returns the last inserted row ID.
 
     /// int id1 = await database.rawInsert(
     /// 'INSERT INTO Test(name, value, num) VALUES("some name", 1234, 456.789)');
+
+    print(response);
     return response;
   }
 
-  //?===== [3]============
+  //?================================ [3] ======================================
   updateData(String sql) async {
     Database? mydb = await db;
 
     int response = await mydb!.rawUpdate(sql);
+    //* Executes a raw SQL UPDATE query and returns the number of changes made.
 
     ///int count = await database.rawUpdate(
     ///'UPDATE Test SET name = ?, value = ? WHERE name = ?',
@@ -208,12 +261,13 @@ class SqlDb {
     return response;
   }
 
-  //?===== [4 => A]============
+  //?================================ [4 => A] =================================
   //! when delete certain ID not used again by DB ================
   deleteData(String sql) async {
     Database? mydb = await db;
 
     int response = await mydb!.rawDelete(sql);
+    //* Executes a raw SQL DELETE query and returns the number of changes made.
 
     /// int count = await database.rawDelete(
     /// 'DELETE FROM Test WHERE name = ?', ['another name']);
@@ -222,7 +276,7 @@ class SqlDb {
 
   // to delete all db data = clear
   // as intialDb to determain our path
-  //?===== [4 => B]============
+  //?================================ [4 => B] =================================
   mydeleteDatabase() async {
     String databasepath = await getDatabasesPath();
     String path = join(databasepath, 'wael.db');
